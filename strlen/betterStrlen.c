@@ -48,11 +48,17 @@ size_t betterStrlen(const char *str)
 int main(int argc, char **argv)
 {
   char *testStr;
+  int nTimes = 0;
+  int size = 0;
+  int i = 0;
 
-  int nTimes = 1000000;
-  int size = 100;
+  if (argc < 3) {
+    printUsage(argv[0]);
+    return 0;
+  }
 
-  int i;
+  nTimes = atoi(argv[1]);
+  size = atoi(argv[2]);
 
   srandom(19999);
   testStr = (char *) malloc(size);
@@ -61,7 +67,8 @@ int main(int argc, char **argv)
   }
   testStr[size-1] = '\0';
 
-  testFunc(testStr, nTimes,betterStrlen);
+//  printf("betterStrlen: ");
+  testFunc(testStr, nTimes, betterStrlen);
 
   return 0;
 }

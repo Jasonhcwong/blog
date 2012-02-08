@@ -12,5 +12,11 @@ void testFunc(char *str, int nTimes, size_t (*testedFunc)(const char *))
   }
   gettimeofday(&endTime, NULL);
 
-  printf("time elapsed: %ld\n", (endTime.tv_sec - startTime.tv_sec) * 1000 * 1000 + (endTime.tv_usec - startTime.tv_usec));
+//  printf("time elapsed: %ld\n", (endTime.tv_sec - startTime.tv_sec) * 1000 * 1000 + (endTime.tv_usec - startTime.tv_usec));
+  printf("%ld", (endTime.tv_sec - startTime.tv_sec) * 1000 * 1000 + (endTime.tv_usec - startTime.tv_usec));
 };
+
+void printUsage(char *str)
+{
+  printf("Usage %s nTimes size\n", str);
+}
