@@ -1,9 +1,9 @@
 CC=gcc
-CFLAG= -msse4 -g -O2
+CFLAG= -msse4 -O2 -lrt
 
 objs = strlenCommon.o
-execs = naiveStrlen betterStrlen sse42Strlen libcStrlen
-nTimes = 1000000
+execs = naiveStrlen betterStrlen sse2Strlen sse42Strlen libcStrlen
+nTimes = 100
 
 all: $(execs)
 
@@ -16,20 +16,23 @@ naiveStrlen: naiveStrlen.c strlenCommon.o
 betterStrlen: betterStrlen.c strlenCommon.o
 	$(CC) $(CFLAG) -o betterStrlen betterStrlen.c strlenCommon.o
 
+sse2Strlen: sse2Strlen.c strlenCommon.o
+	$(CC) $(CFLAG) -o sse2Strlen sse2Strlen.c strlenCommon.o
+
 sse42Strlen: sse42Strlen.c strlenCommon.o
 	$(CC) $(CFLAG) -o sse42Strlen sse42Strlen.c strlenCommon.o
 
 libcStrlen: libcStrlen.c strlenCommon.o
 	$(CC) $(CFLAG) -o libcStrlen libcStrlen.c strlenCommon.o
 
-test:
-	@echo "size,naiveStrlen,betterStrlen,sse42Strlen,libcStrlen"
+test:	all
+	@echo "size,naiveStrlen,betterStrlen,sse2Strlen,sse42Strlen,libcStrlen"
 	@for ((i = 2; i <= 1024; i = i + 2)) ; do \
-		echo "$$i,"`./naiveStrlen  $(nTimes) $$i`","`./betterStrlen $(nTimes) $$i`","`./sse42Strlen  $(nTimes) $$i`","`./libcStrlen  $(nTimes) $$i` ; \
+		echo "$$i,"`./naiveStrlen  $(nTimes) $$i`","`./betterStrlen $(nTimes) $$i`","`./sse2Strlen  $(nTimes) $$i`","`./sse42Strlen $(nTimes) $$i`","`./libcStrlen  $(nTimes) $$i` ; \
 	done
-	@echo "size,naiveStrlen,betterStrlen,sse42Strlen,libcStrlen"
+	@echo "size,naiveStrlen,betterStrlen,sse2Strlen,sse42Strlen,libcStrlen"
 	@for ((i = 1; i <= 65536; i = i * 2)) ; do \
-		echo "$$i,"`./naiveStrlen  $(nTimes) $$i`","`./betterStrlen $(nTimes) $$i`","`./sse42Strlen  $(nTimes) $$i`","`./libcStrlen  $(nTimes) $$i` ; \
+		echo "$$i,"`./naiveStrlen  $(nTimes) $$i`","`./betterStrlen $(nTimes) $$i`","`./sse2Strlen  $(nTimes) $$i`","`./sse42Strlen $(nTimes) $$i`","`./libcStrlen  $(nTimes) $$i` ; \
 	done
 
 clean:

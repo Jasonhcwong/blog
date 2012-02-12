@@ -7,11 +7,24 @@ size_t sse42Strlen(const char *str)
   __m128i zero = _mm_setzero_si128(); int offset = 0;
   __m128i *ptr = (__m128i *) str;
 
-  do {
-    offset = _mm_cmpistri(zero, _mm_loadu_si128(ptr), _SIDD_CMP_EQUAL_EACH);
-    ptr++;
-  } while(offset == 16);
-
+  for(;;) {
+    offset = _mm_cmpistri(zero, _mm_loadu_si128(ptr++), _SIDD_CMP_EQUAL_EACH);
+    if (offset != 16) {
+      break;
+    }
+    offset = _mm_cmpistri(zero, _mm_loadu_si128(ptr++), _SIDD_CMP_EQUAL_EACH);
+    if (offset != 16) {
+      break;
+    }
+    offset = _mm_cmpistri(zero, _mm_loadu_si128(ptr++), _SIDD_CMP_EQUAL_EACH);
+    if (offset != 16) {
+      break;
+    }
+    offset = _mm_cmpistri(zero, _mm_loadu_si128(ptr++), _SIDD_CMP_EQUAL_EACH);
+    if (offset != 16) {
+      break;
+    }
+  }
   return (char *) ptr - 16 - str + offset;
 }
 
@@ -38,8 +51,10 @@ int main(int argc, char **argv)
   }
   testStr[size-1] = '\0';
 
+//  printf("%ld\n", sse42Strlen(testStr));
+//  printf("%ld\n", strlen(testStr));
 //  printf("sse42Strlen:  ");
-  testFunc(testStr, nTimes, sse42Strlen);
+  testFunc(size, nTimes, sse42Strlen);
 
   return 0;
 }

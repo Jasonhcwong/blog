@@ -23,7 +23,7 @@ int main(int argc, char **argv)
   testStr[size-1] = '\0';
 
 //  printf("libcStrlen:   ");
-  testFunc(testStr, nTimes, strlen);
+  testFunc(size, nTimes, strlen);
 
   return 0;
 }

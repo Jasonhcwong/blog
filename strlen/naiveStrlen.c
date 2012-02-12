@@ -33,7 +33,7 @@ int main(int argc, char **argv)
   testStr[size-1] = '\0';
 
 //  printf("naiveStrlen:  ");
-  testFunc(testStr, nTimes, naiveStrlen);
+  testFunc(size, nTimes, naiveStrlen);
 
   return 0;
 }
