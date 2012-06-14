@@ -1,5 +1,5 @@
 CC=g++
-CFLAG= -I . -lrt
+CFLAG= -Wall -I . -lrt
 
 objs = 
 execs = main
