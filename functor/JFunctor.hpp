@@ -26,7 +26,20 @@
 #define TEMPLATE_ARG_8 TEMPLATE_ARG_7, TEMPLATE_ARG(8)
 #define TEMPLATE_ARG_9 TEMPLATE_ARG_8, TEMPLATE_ARG(9)
 
-// you will see: P1 p1, P2 p2, P3 p3 ...... 
+// you will see: X *x, P1 p1, P2 p2, P3 p3 ...... 
+#define FUNCTION_ARG_X(L) P##L p##L
+#define FUNCTION_ARG_X_0                   X *x
+#define FUNCTION_ARG_X_1 FUNCTION_ARG_X_0, FUNCTION_ARG_X(1)
+#define FUNCTION_ARG_X_2 FUNCTION_ARG_X_1, FUNCTION_ARG_X(2)
+#define FUNCTION_ARG_X_3 FUNCTION_ARG_X_2, FUNCTION_ARG_X(3)
+#define FUNCTION_ARG_X_4 FUNCTION_ARG_X_3, FUNCTION_ARG_X(4)
+#define FUNCTION_ARG_X_5 FUNCTION_ARG_X_4, FUNCTION_ARG_X(5)
+#define FUNCTION_ARG_X_6 FUNCTION_ARG_X_5, FUNCTION_ARG_X(6)
+#define FUNCTION_ARG_X_7 FUNCTION_ARG_X_6, FUNCTION_ARG_X(7)
+#define FUNCTION_ARG_X_8 FUNCTION_ARG_X_7, FUNCTION_ARG_X(8)
+#define FUNCTION_ARG_X_9 FUNCTION_ARG_X_8, FUNCTION_ARG_X(9)
+
+// you will see: P1 p1, P2 p2, P3 p3 _X...... 
 #define FUNCTION_ARG(L) P##L p##L
 #define FUNCTION_ARG_0
 #define FUNCTION_ARG_1                 FUNCTION_ARG(1)
@@ -79,33 +92,42 @@ private: \
   typedef R (*functor_fp_##L)(FUNCTION_ARG_##L); \
   typedef R (NullClass::*memFun_##L)(FUNCTION_ARG_##L); \
 public: \
+  functorN() { } \
+  ~functorN() { } \
   functorN(functor_fp_##L a) \
   { \
-    isMemFun = false; \
     memcpy((void *) &m_fp, (void *) &a, sizeof(functor_fp_##L)); \
   } \
-  template<typename X, typename Y> \
-  functorN(X *x, R (Y::*a)(FUNCTION_ARG_##L)) \
+  template<typename Y> \
+  functorN(R (Y::*a)(FUNCTION_ARG_##L)) \
   { \
-    isMemFun = true; \
-    m_pthis = x; \
+    memcpy((void *) &m_memFun, (void *) &a, sizeof(memFun_##L)); \
+  } \
+  void operator = (functor_fp_##L a) \
+  { \
+    memcpy((void *) &m_fp, (void *) &a, sizeof(functor_fp_##L)); \
+  } \
+  template<typename Y> \
+  void operator = (R (Y::*a)(FUNCTION_ARG_##L)) \
+  { \
     memcpy((void *) &m_memFun, (void *) &a, sizeof(memFun_##L)); \
   } \
   R operator () (FUNCTION_ARG_##L) \
   { \
-    if (isMemFun) \
-      return (((NullClass *) (m_pthis))->*(m_memFun))(FUNCTION_PARAM_##L); \
-    else \
-      return (m_fp)(FUNCTION_PARAM_##L); \
+    return (m_fp)(FUNCTION_PARAM_##L); \
+  } \
+  template<typename X> \
+  R operator () (FUNCTION_ARG_X_##L) \
+  { \
+    return (((NullClass *) x)->*(m_memFun))(FUNCTION_PARAM_##L); \
   } \
 private: \
   functor_fp_##L   m_fp; \
   memFun_##L       m_memFun; \
-  void             *m_pthis; \
-  bool             isMemFun; \
 };
 
 MY_PP_9(NaturalSyntax)
+
 /******************************************************************************/
 
 template<typename ret_type = void, typename P1 = NullClass, 
