@@ -39,7 +39,7 @@
 #define FUNCTION_ARG_X_8 FUNCTION_ARG_X_7, FUNCTION_ARG_X(8)
 #define FUNCTION_ARG_X_9 FUNCTION_ARG_X_8, FUNCTION_ARG_X(9)
 
-// you will see: P1 p1, P2 p2, P3 p3 _X...... 
+// you will see: P1 p1, P2 p2, P3 p3 ...... 
 #define FUNCTION_ARG(L) P##L p##L
 #define FUNCTION_ARG_0
 #define FUNCTION_ARG_1                 FUNCTION_ARG(1)
@@ -82,24 +82,24 @@
 class NullClass;
 
 template<typename signature>
-class functorN;
+class functor;
 
 #define NaturalSyntax(L) \
 template<TEMPLATE_ARG_##L> \
-class functorN< R (FUNCTION_ARG2_##L) > \
+class functor< R (FUNCTION_ARG2_##L) > \
 { \
 private: \
   typedef R (*functor_fp_##L)(FUNCTION_ARG_##L); \
   typedef R (NullClass::*memFun_##L)(FUNCTION_ARG_##L); \
 public: \
-  functorN() { } \
-  ~functorN() { } \
-  functorN(functor_fp_##L a) \
+  functor() { } \
+  ~functor() { } \
+  functor(functor_fp_##L a) \
   { \
     memcpy((void *) &m_fp, (void *) &a, sizeof(functor_fp_##L)); \
   } \
   template<typename Y> \
-  functorN(R (Y::*a)(FUNCTION_ARG_##L)) \
+  functor(R (Y::*a)(FUNCTION_ARG_##L)) \
   { \
     memcpy((void *) &m_memFun, (void *) &a, sizeof(memFun_##L)); \
   } \
@@ -129,56 +129,6 @@ private: \
 MY_PP_9(NaturalSyntax)
 
 /******************************************************************************/
-
-template<typename ret_type = void, typename P1 = NullClass, 
-         typename P2 = NullClass,  typename P3 = NullClass, 
-         typename P4 = NullClass,  typename P5 = NullClass, 
-         typename P6 = NullClass,  typename P7 = NullClass, 
-         typename P8 = NullClass,  typename P9 = NullClass>
-class functor
-{
-private: 
-  typedef ret_type (*functor_fp)();
-  typedef ret_type (NullClass::*memFun)();
-
-public:
-  functor() { }
-  ~functor() { }
-
-#define myTEMP(L) \
-  typedef ret_type (*functor_fp_##L)(FUNCTION_ARG_##L); \
-  typedef ret_type (NullClass::*memFun_##L)(FUNCTION_ARG_##L); \
-\
-  functor(functor_fp_##L a) \
-  { \
-    isMemFun = false; \
-    memcpy((void *) &m_fp, (void *) &a, sizeof(functor_fp)); \
-  } \
-\
-  template<typename X, typename Y> \
-  functor(X *x, ret_type (Y::*a)(FUNCTION_ARG_##L)) \
-  { \
-    isMemFun = true; \
-    m_pthis = x; \
-    memcpy((void *) &m_memFun, (void *) &a, sizeof(memFun)); \
-  } \
-\
-  ret_type operator () (FUNCTION_ARG_##L) \
-  { \
-    if (isMemFun) \
-      return (((NullClass *) (m_pthis))->*(memFun_##L (m_memFun)))(FUNCTION_PARAM_##L); \
-    else \
-      return ((functor_fp_##L (m_fp)))(FUNCTION_PARAM_##L); \
-  } \
-
-MY_PP_9(myTEMP)
-
-private:
-  functor_fp   m_fp;
-  memFun       m_memFun;
-  void         *m_pthis;
-  bool         isMemFun;
-};
 
 #endif /* JFUNCTOR_H */
 

@@ -1,18 +1,22 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <assert.h>
+#include <cassert>
+
+#include <algorithm>
+#include <vector>
+
 
 #include <sys/time.h>
 #include <time.h>
 
 #include <JFunctor.hpp>
 
-class A
+class Base
 {
 public:
-  A() { }
-  ~A() { }
+  Base() { }
+  ~Base() { }
 
   int a() 
   { 
@@ -22,9 +26,9 @@ public:
   { 
     m_a = a_; 
   }
-  static void static_b(int a) 
+  static int static_b(int a) 
   {  
-     printf("A::static_b(): %d\n", a); 
+    return a;
   }
 
   virtual int virtual_c(int a) 
@@ -32,9 +36,17 @@ public:
     return a; 
   }
 
+  void e(int a) 
+  { 
+    printf("Base::e(), %d\n", a); 
+  }
   void d(int a) 
   { 
-    printf("A::d(), %d\n", a); 
+    m_a = a;
+  }
+  void db(int a) 
+  { 
+    printf("Base::db(), %d\n", a); 
   }
   int d2(int a, int b) 
   { 
@@ -44,12 +56,16 @@ public:
   { 
     return a+b+c+d+e+f+g+h+i;
   }
+  int getBase()
+  {
+    return m_a;
+  }
 
 private:
   int m_a;
 };
 
-class AA : public A
+class Derived : public Base
 {
 public:
   int virtual_c(int a)
@@ -57,7 +73,7 @@ public:
     return 10 + a;
   }
 
-  int AA_a2(int a, int b)
+  int Derived_a2(int a, int b)
   {
     return a + b;
   }
@@ -77,34 +93,10 @@ void performanceTest(int n = 500000000)
 {
   struct timeval startTimeU, endTimeU;
   struct timespec startTimeN, endTimeN;
-  A b;
+  Base b;
 
   clock_gettime(CLOCK_REALTIME, &startTimeN);
-  functor<int, int, int> h(&b, &A::d2);
-  clock_gettime(CLOCK_REALTIME, &endTimeN);
-  printf("time for creating a functor: %ld ns\n", (endTimeN.tv_sec - startTimeN.tv_sec) * 1000000000 + (endTimeN.tv_nsec - startTimeN.tv_nsec));
-
-  clock_gettime(CLOCK_REALTIME, &startTimeN);
-  h(19, 20);
-  clock_gettime(CLOCK_REALTIME, &endTimeN);
-  printf("time for calling functor: %ld ns\n", (endTimeN.tv_sec - startTimeN.tv_sec) * 1000000000 + (endTimeN.tv_nsec - startTimeN.tv_nsec));
-
-  gettimeofday(&startTimeU, NULL);
-  for (int counter = 0; counter < n; ++counter) {
-    h(19, 20);
-  }
-  gettimeofday(&endTimeU, NULL);
-  printf("time for calling functor for %d times: %ld us\n", n, (endTimeU.tv_sec - startTimeU.tv_sec) * 1000000 + (endTimeU.tv_usec - startTimeU.tv_usec));
-}
-
-void performanceTestN(int n = 500000000)
-{
-  struct timeval startTimeU, endTimeU;
-  struct timespec startTimeN, endTimeN;
-  A b;
-
-  clock_gettime(CLOCK_REALTIME, &startTimeN);
-  functorN<int (int, int)> h(&A::d2);
+  functor<int (int, int)> h(&Base::d2);
   clock_gettime(CLOCK_REALTIME, &endTimeN);
   printf("time for creating a functor: %ld ns\n", (endTimeN.tv_sec - startTimeN.tv_sec) * 1000000000 + (endTimeN.tv_nsec - startTimeN.tv_nsec));
 
@@ -121,66 +113,50 @@ void performanceTestN(int n = 500000000)
   printf("time for calling functor for %d times: %ld us\n", n, (endTimeU.tv_sec - startTimeU.tv_sec) * 1000000 + (endTimeU.tv_usec - startTimeU.tv_usec));
 }
 
+bool mycmp (int i,int j) 
+{ 
+  return (i<j); 
+}
+
 int main(void)
 {
-  // test ordinary function
-  functor<void> f0(&test0);
-  f0();
-
-  functor<double, double> f1(&test1);
-  assert(12.123 == f1(12.123));
-
-  // test member function
-  A a;
-  A b;
-  A c;
-  AA aa;
-
-  functor<void, int> f2(&a, &A::d);
-  functor<void, int> f3(&A::static_b);
-  functor<int, int, int, int, int, int, int, int, int, int> f4(&c, &A::d9);
-  functor<int, int> f5(&c, &A::virtual_c);
-  functor<int, int, int> f6(&aa, &AA::AA_a2);
-  functor<int, int> f7(&aa, &AA::virtual_c);
-
-  f2(17);
-  f3(21);
-  assert(f4(1,2,3,4,5,6,7,8,9) == (1+2+3+4+5+6+7+8+9));
-  assert(f5(5) == 5);
-  assert(f6(5, 6) == 5+6);
-  assert(f7(6) == 10+6);
-
 /***************************** Natrual Syntax ********************************/
+  Base a;
+  Base b;
+  Base c;
+  Derived aa;
+
   // test ordinary function
-  functorN<void( ) > g0(&test0);
+  functor<void( ) > g0(&test0);
   g0();
 
-  functorN<double (double)> g1;
+  functor<double (double)> g1;
   g1 = &test1;
   assert(12.123 == g1(12.123));
 
   // test member function
-  functorN<void (int)> g2(&A::d);
-  functorN<void (int)> g3(&A::static_b);
-  functorN<int (int, int, int, int, int, int, int, int, int)> g4(&A::d9);
-  functorN<int (int)> g5(&A::virtual_c);
+  functor<void (int)> g2(&Base::d);
+  functor<int (int)> g3(&Base::static_b);
+  functor<int (int, int, int, int, int, int, int, int, int)> g4(&Base::d9);
+  functor<int (int)> g5(&Base::virtual_c);
   // operator =
-  functorN<int (int, int)> g6;
-  g6 = &AA::AA_a2; 
+  functor<int (int, int)> g6;
+  g6 = &Derived::Derived_a2; 
 
-  functorN<int (int)> g7(&AA::virtual_c);
+  functor<int (int)> g7(&Derived::virtual_c);
   // copy constructor
-  functorN<int (int)> g7_2;
+  functor<int (int)> g7_2;
   g7_2 = g7;
-  functorN<int (int)> g7_3(g7);
+  functor<int (int)> g7_3(g7);
   // reference 
-  functorN<int (int)> &g7_4 = g7;
+  functor<int (int)> &g7_4 = g7;
   // pointer 
-  functorN<int (int)> *g7_5 = &g7;
+  functor<int (int)> *g7_5 = &g7;
 
 
-  g2(&a, 17);
-  g3(21);
+  g2(&a, 18);
+  assert(18 == a.getBase());
+  assert(g3(29) == 29);
   assert(g4(&b, 1,2,3,4,5,6,7,8,9) == (1+2+3+4+5+6+7+8+9));
   assert(g5(&c, 5) == 5);
   assert(g6(&aa, 5, 6) == 5+6);
@@ -190,12 +166,23 @@ int main(void)
   assert(g7_4(&aa, 6) == 10+6);
   assert((*g7_5)(&aa, 6) == 10+6);
 
-  printf("size of functor<>: %ld\n", sizeof (functor<>));
-  printf("size of functorN<>: %ld\n", sizeof (g7));
+/************************************* STL *************************************/
+  int myints[] = {32,71,12,45,26,80,53,33};
+  std::vector<int> myvector1(myints, myints+8);
+  std::vector<int> myvector2(myints, myints+8);
+
+  functor<bool (int, int)> functorCmp = &mycmp;
+
+  std::sort(myvector1.begin(), myvector1.end());
+  std::sort(myvector2.begin(), myvector2.end(), functorCmp);
+
+  assert(myvector1.size() == myvector2.size());
+  for (unsigned int i = 0; i < myvector1.size(); ++i) {
+    assert(myvector1[i] == myvector2[i]);
+  }
 
 /***************************** Performance Test ********************************/
-  performanceTest (500000000);
-  performanceTestN(500000000);
+//  performanceTest (500000000);
 
   return 0;
 }
